@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="sl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HP Prime SOLVE – Interaktivni grafični simulator</title>
+  <style>
+    :root{
+      --bg:#0f1419;
+      --panel:#1a1f2e;
+      --panel-alt:#242d3d;
+      --ink:#e8ecf1;
+      --muted:#9ca3af;
+      --line:#3a4557;
+      --blue:#3b82f6;
+      --blue-soft:#1e40af;
+      --green:#10b981;
+      --green-soft:#064e3b;
+      --amber:#f59e0b;
+      --red:#ef4444;
+      --dark:#111827;
+      --shadow:0 10px 40px rgba(0,0,0,0.4);
+    }
+
+    *{ box-sizing:border-box; }
+
+    html{ scroll-behavior:smooth; }
+    body{
+      margin:0;
+      background:var(--bg);
+      color:var(--ink);
+      font-family: "Segoe UI", Arial, sans-serif;
+      line-height:1.6;
+      padding:20px;
+    }
+
+    .container{
+      max-width:1400px;
+      margin:0 auto;
+    }
+
+    .header{
+      background:linear-gradient(135deg, #1e3a5f 0%, #2563eb 100%);
+      color:#fff;
+      border-radius:12px;
+      box-shadow:var(--shadow);
+      padding:24px 28px 20px 28px;
+      margin-bottom:20px;
+    }
+
+    .header h1{
+      margin:0 0 6px 0;
+      font-size:1.9rem;
+    }
+
+    .header p{
+      margin:0;
+      color:#cce7ff;
+      font-size:0.95rem;
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:20px;
+      margin-bottom:20px;
+    }
+
+    .panel{
+      background:var(--panel);
+      border:1px solid var(--line);
+      border-radius:12px;
+      padding:18px 20px;
+      box-shadow:var(--shadow);
+    }
+
+    .panel h2{
+      margin:0 0 14px 0;
+      font-size:1.1rem;
+      color:#60a5fa;
+    }
+
+    .input-group{
+      margin-bottom:14px;
+    }
+
+    .input-group label{
+      display:block;
+      font-size:0.85rem;
+      color:var(--muted);
+      margin-bottom:5px;
+      font-weight:600;
+      text-transform:uppercase;
+      letter-spacing:0.05em;
+    }
+
+    .input-group input, .input-group select{
+      width:100%;
+      padding:8px 10px;
+      background:var(--panel-alt);
+      border:1px solid var(--line);
+      border-radius:8px;
+      color:var(--ink);
+      font-size:0.9rem;
+      font-family:monospace;
+    }
+
+    .input-group input:focus, .input-group select:focus{
+      outline:none;
+      border-color:var(--blue);
+      box-shadow:0 0 0 3px rgba(59,130,246,0.1);
+    }
+
+    .button-group{
+      display:flex;
+      gap:8px;
+      margin-top:12px;
+    }
+
+    button{
+      flex:1;
+      padding:10px;
+      background:var(--blue);
+      color:#fff;
+      border:none;
+      border-radius:8px;
+      font-weight:600;
+      cursor:pointer;
+      font-size:0.85rem;
+      transition:all 0.2s;
+    }
+
+    button:hover{
+      background:#2563eb;
+      transform:translateY(-1px);
+      box-shadow:0 5px 15px rgba(37,99,235,0.3);
+    }
+
+    button:active{
+      transform:translateY(0);
+    }
+
+    .btn-secondary{
+      background:var(--panel-alt);
+      color:var(--blue);
+      border:1px solid var(--blue);
+    }
+
+    .btn-secondary:hover{
+      background:rgba(59,130,246,0.1);
+    }
+
+    #canvas{
+      width:100%;
+      height:500px;
+      background:var(--dark);
+      border-radius:12px;
+      border:1px solid var(--line);
+      display:block;
+      margin-bottom:12px;
+    }
+
+    .info-box{
+      background:rgba(59,130,246,0.1);
+      border:1px solid var(--blue);
+      border-radius:8px;
+      padding:10px 12px;
+      font-size:0.85rem;
+      color:var(--ink);
+    }
+
+    .info-box strong{
+      color:#60a5fa;
+    }
+
+    .trace-info{
+      background:var(--panel-alt);
+      border-radius:8px;
+      padding:12px;
+      margin-top:12px;
+      font-size:0.85rem;
+      color:var(--muted);
+    }
+
+    .trace-info div{
+      margin:4px 0;
+    }
+
+    .trace-info strong{
+      color:var(--ink);
+    }
+
+    .examples{
+      display:grid;
+      gap:6px;
+      margin-top:8px;
+    }
+
+    .example-btn{
+      padding:6px 8px;
+      background:var(--panel-alt);
+      border:1px solid var(--line);
+      border-radius:6px;
+      color:var(--blue);
+      cursor:pointer;
+      font-size:0.8rem;
+      text-align:left;
+      font-family:monospace;
+      transition:all 0.2s;
+    }
+
+    .example-btn:hover{
+      background:var(--line);
+      border-color:var(--blue);
+    }
+
+    .full-width{
+      grid-column:1 / -1;
+    }
+
+    .tutorial{
+      background:var(--panel);
+      border:1px solid var(--line);
+      border-radius:12px;
+      padding:18px 20px;
+      box-shadow:var(--shadow);
+      margin-bottom:20px;
+    }
+
+    .tutorial h2{
+      margin:0 0 12px 0;
+      color:#60a5fa;
+      font-size:1.1rem;
+    }
+
+    .tutorial .card{
+      background:var(--panel-alt);
+      border-left:4px solid var(--blue);
+      padding:12px;
+      margin:10px 0;
+      border-radius:6px;
+    }
+
+    .tutorial .card h4{
+      margin:0 0 6px 0;
+      color:var(--ink);
+      font-size:0.9rem;
+    }
+
+    .tutorial .card p{
+      margin:0;
+      color:var(--muted);
+      font-size:0.85rem;
+    }
+
+    .syntax{
+      background:var(--dark);
+      border:1px solid var(--line);
+      border-radius:6px;
+      padding:10px;
+      margin:8px 0;
+      font-family:monospace;
+      font-size:0.85rem;
+      color:#60a5fa;
+      overflow-x:auto;
+    }
+
+    .footer{
+      text-align:center;
+      color:var(--muted);
+      font-size:0.85rem;
+      padding:20px 0;
+      border-top:1px solid var(--line);
+      margin-top:20px;
+    }
+
+    .warning{
+      background:rgba(239,68,68,0.1);
+      border:1px solid var(--red);
+      border-radius:8px;
+      padding:10px 12px;
+      font-size:0.85rem;
+      color:var(--ink);
+      margin-top:10px;
+    }
+
+    .success{
+      background:rgba(16,185,129,0.1);
+      border:1px solid var(--green);
+      border-radius:8px;
+      padding:10px 12px;
+      font-size:0.85rem;
+      color:var(--ink);
+      margin-top:10px;
+    }
+
+    .trace-indicator{
+      display:inline-block;
+      width:8px;
+      height:8px;
+      background:var(--amber);
+      border-radius:50%;
+      margin-right:6px;
+    }
+
+    @media (max-width:1024px){
+      .grid{
+        grid-template-columns:1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header class="header">
+      <h1>🧮 HP Prime SOLVE – Interaktivni grafični simulator</h1>
+      <p>Simulacija delovanja grafičnega prikaza in analize funkcij v realnem času</p>
+    </header>
+
+    <div class="grid">
+      <div class="panel">
+        <h2>📊 Vnos funkcije</h2>
+        
+        <div class="input-group">
+          <label>Funkcija f(x):</label>
+          <input type="text" id="funcInput" value="x^2-4" placeholder="npr. sin(x), x^2-4, cos(x), ..." />
+        </div>
+
+        <div class="input-group">
+          <label>Interval X: od</label>
+          <input type="number" id="xMin" value="-10" step="0.5" />
+        </div>
+
+        <div class="input-group">
+          <label>Interval X: do</label>
+          <input type="number" id="xMax" value="10" step="0.5" />
+        </div>
+
+        <div class="input-group">
+          <label>Interval Y: od</label>
+          <input type="number" id="yMin" value="-15" step="0.5" />
+        </div>
+
+        <div class="input-group">
+          <label>Interval Y: do</label>
+          <input type="number" id="yMax" value="15" step="0.5" />
+        </div>
+
+        <div class="button-group">
+          <button onclick="drawGraph()">Narisi graf</button>
+          <button class="btn-secondary" onclick="resetView()">Ponastavi</button>
+        </div>
+
+        <div class="info-box" style="margin-top:12px;">
+          <strong>💡 TRACE mode:</strong> Premikajte miško po grafu za odčitavanje vrednosti. Kliknite za fiksiranje točke.
+        </div>
+
+        <div style="margin-top:12px;">
+          <label style="font-size:0.8rem; color:var(--muted); display:block; margin-bottom:6px; text-transform:uppercase; font-weight:600;">Primeri funkcij:</label>
+          <div class="examples">
+            <button class="example-btn" onclick="loadExample('x^2')">Kvadratna: x^2</button>
+            <button class="example-btn" onclick="loadExample('x^2-4')">Ničle: x^2-4</button>
+            <button class="example-btn" onclick="loadExample('sin(x)')">Sinus: sin(x)</button>
+            <button class="example-btn" onclick="loadExample('cos(x)')">Kosinus: cos(x)</button>
+            <button class="example-btn" onclick="loadExample('exp(x)')">Eksponent: exp(x)</button>
+            <button class="example-btn" onclick="loadExample('ln(x)')">Logaritem: ln(x)</button>
+            <button class="example-btn" onclick="loadExample('x^3-3*x')">Kubna: x^3-3*x</button>
+            <button class="example-btn" onclick="loadExample('1/x')">Hiperbola: 1/x</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>🎯 TRACE – Analiza točk</h2>
+        
+        <canvas id="canvas"></canvas>
+
+        <div class="trace-info">
+          <div><strong>Trenutna pozicija:</strong></div>
+          <div>X: <span id="traceX">—</span></div>
+          <div>Y: <span id="traceY">—</span></div>
+          <div style="margin-top:8px; padding-top:8px; border-top:1px solid var(--line);"><strong>Analiza:</strong></div>
+          <div id="traceAnalysis">Premikajte miško po grafu</div>
+        </div>
+
+        <div class="button-group" style="margin-top:12px;">
+          <button onclick="findRoots()">Poišči ničle (ROOT)</button>
+          <button class="btn-secondary" onclick="findExtrema()">Ekstremi (EXTREM)</button>
+        </div>
+
+        <div id="results" style="margin-top:12px;"></div>
+      </div>
+    </div>
+
+    <div class="tutorial full-width">
+      <h2>📚 Kako deluje simulator?</h2>
+      
+      <div class="card">
+        <h4>1️⃣ Vnos funkcije</h4>
+        <p>Vnesite matematični izraz, npr. <strong>x^2-4</strong>, <strong>sin(x)</strong> ali <strong>x^3-3*x</strong>. Podporirani so operatorji: +, -, *, /, ^, sin(), cos(), tan(), exp(), ln(), sqrt().</p>
+        <div class="syntax">Primeri: x^2 | sin(x) | x^3-3*x | exp(x) | 1/(1+x^2)</div>
+      </div>
+
+      <div class="card">
+        <h4>2️⃣ Nastavljanje intervala</h4>
+        <p>Nastavite interval x in y, da se graf pravilno prikaže. Če se funkcija ne vidi, preuredite interval.</p>
+        <div class="syntax">X: od -10 do 10 | Y: od -15 do 15</div>
+      </div>
+
+      <div class="card">
+        <h4>3️⃣ Narisi graf</h4>
+        <p>Kliknite gumb "Narisi graf" da narišete funkcijo. Graf se narisa v realnem času.</p>
+      </div>
+
+      <div class="card">
+        <h4>4️⃣ TRACE – Premikanje po grafu</h4>
+        <p>Premikajte miško po grafu in vidite točne x-y vrednosti v levem panelu. To je simulacija HP Prime ukaza <strong>TRACE()</strong>.</p>
+      </div>
+
+      <div class="card">
+        <h4>5️⃣ ROOT – Iskanje ničel</h4>
+        <p>Kliknite gumb "Poišči ničle" da najdete točke, kjer graf seka os x (kjer je y=0).</p>
+      </div>
+
+      <div class="card">
+        <h4>6️⃣ EXTREM – Iskanje ekstremov</h4>
+        <p>Kliknite gumb "Ekstremi" da najdete maksimume in minimume funkcije.</p>
+      </div>
+    </div>
+
+    <div class="tutorial full-width">
+      <h2>📖 HP Prime SOLVE Ukazi – Direktna primerjava</h2>
+      
+      <div class="card">
+        <h4>GRAPH(expr) – Narisi graf</h4>
+        <p><strong>HP Prime:</strong> GRAPH(x^2-4)</p>
+        <p><strong>Simulator:</strong> Vnesite <strong>x^2-4</strong> in kliknite "Narisi graf"</p>
+      </div>
+
+      <div class="card">
+        <h4>TRACE() – Premikanje po grafu</h4>
+        <p><strong>HP Prime:</strong> Po prikazu grafa pritisnite TRACE() in premikajte s puščicami</p>
+        <p><strong>Simulator:</strong> Premikajte miško po grafu – vidite x-y vrednosti v realnem času</p>
+      </div>
+
+      <div class="card">
+        <h4>ROOT() – Iskanje ničel</h4>
+        <p><strong>HP Prime:</strong> ROOT() najde točke, kjer je y=0</p>
+        <p><strong>Simulator:</strong> Kliknite "Poišči ničle" – prikaze se vse ničle na grafu</p>
+      </div>
+
+      <div class="card">
+        <h4>EXTREM() – Iskanje ekstremov</h4>
+        <p><strong>HP Prime:</strong> EXTREM() najde maksimume in minimume</p>
+        <p><strong>Simulator:</strong> Kliknite "Ekstremi" – prikaže se lokalni max/min</p>
+      </div>
+    </div>
+
+    <div class="footer">
+      HP Prime SOLVE • Interaktivni grafični simulator • v1.0 • 2026
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    let traceMode = false;
+    let fixedPoint = null;
+
+    // Prilagodi velikost canvasa
+    function resizeCanvas() {
+      const rect = canvas.getBoundingClientRect();
+      canvas.width = rect.width;
+      canvas.height = rect.height;
+      if (document.getElementById('funcInput').value) {
+        drawGraph();
+      }
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    // Parser za matematične izraze
+    function parseExpression(expr, x) {
+      try {
+        expr = expr.replace(/\^/g, '**');
+        expr = expr.replace(/π/g, Math.PI);
+        expr = expr.replace(/pi/g, Math.PI);
+        expr = expr.replace(/e/g, Math.E);
+        return Function('x', 'return ' + expr)(x);
+      } catch (e) {
+        return NaN;
+      }
+    }
+
+    function drawGraph() {
+      const expr = document.getElementById('funcInput').value;
+      const xMin = parseFloat(document.getElementById('xMin').value);
+      const xMax = parseFloat(document.getElementById('xMax').value);
+      const yMin = parseFloat(document.getElementById('yMin').value);
+      const yMax = parseFloat(document.getElementById('yMax').value);
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = '#111827';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      drawGrid(xMin, xMax, yMin, yMax);
+      drawAxes(xMin, xMax, yMin, yMax);
+      drawCurve(expr, xMin, xMax, yMin, yMax);
+    }
+
+    function drawGrid(xMin, xMax, yMin, yMax) {
+      ctx.strokeStyle = '#3a4557';
+      ctx.lineWidth = 0.5;
+
+      const xStep = Math.pow(10, Math.floor(Math.log10(xMax - xMin)));
+      const yStep = Math.pow(10, Math.floor(Math.log10(yMax - yMin)));
+
+      for (let x = Math.ceil(xMin / xStep) * xStep; x <= xMax; x += xStep) {
+        const px = ((x - xMin) / (xMax - xMin)) * canvas.width;
+        ctx.beginPath();
+        ctx.moveTo(px, 0);
+        ctx.lineTo(px, canvas.height);
+        ctx.stroke();
+      }
+
+      for (let y = Math.ceil(yMin / yStep) * yStep; y <= yMax; y += yStep) {
+        const py = canvas.height - ((y - yMin) / (yMax - yMin)) * canvas.height;
+        ctx.beginPath();
+        ctx.moveTo(0, py);
+        ctx.lineTo(canvas.width, py);
+        ctx.stroke();
+      }
+    }
+
+    function drawAxes(xMin, xMax, yMin, yMax) {
+      ctx.strokeStyle = '#60a5fa';
+      ctx.lineWidth = 2;
+      ctx.fillStyle = '#60a5fa';
+      ctx.font = '12px monospace';
+
+      // X os
+      if (yMin <= 0 && yMax >= 0) {
+        const py = canvas.height - ((-yMin) / (yMax - yMin)) * canvas.height;
+        ctx.beginPath();
+        ctx.moveTo(0, py);
+        ctx.lineTo(canvas.width, py);
+        ctx.stroke();
+      }
+
+      // Y os
+      if (xMin <= 0 && xMax >= 0) {
+        const px = ((-xMin) / (xMax - xMin)) * canvas.width;
+        ctx.beginPath();
+        ctx.moveTo(px, 0);
+        ctx.lineTo(px, canvas.height);
+        ctx.stroke();
+      }
+
+      // Oznake
+      ctx.fillStyle = '#9ca3af';
+      const xStep = Math.pow(10, Math.floor(Math.log10(xMax - xMin)));
+      for (let x = Math.ceil(xMin / xStep) * xStep; x <= xMax; x += xStep) {
+        if (Math.abs(x) < 0.01) continue;
+        const px = ((x - xMin) / (xMax - xMin)) * canvas.width;
+        if (yMin <= 0 && yMax >= 0) {
+          const py = canvas.height - ((-yMin) / (yMax - yMin)) * canvas.height;
+          ctx.fillText(x.toFixed(0), px - 10, py + 15);
+        }
+      }
+    }
+
+    function drawCurve(expr, xMin, xMax, yMin, yMax) {
+      ctx.strokeStyle = '#3b82f6';
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+
+      let firstPoint = true;
+      for (let px = 0; px < canvas.width; px += 2) {
+        const x = xMin + (px / canvas.width) * (xMax - xMin);
+        const y = parseExpression(expr, x);
+
+        if (!isNaN(y) && isFinite(y)) {
+          const py = canvas.height - ((y - yMin) / (yMax - yMin)) * canvas.height;
+          if (py >= 0 && py <= canvas.height) {
+            if (firstPoint) {
+              ctx.moveTo(px, py);
+              firstPoint = false;
+            } else {
+              ctx.lineTo(px, py);
+            }
+          }
+        }
+      }
+      ctx.stroke();
+    }
+
+    // TRACE - Premikanje po grafu
+    canvas.addEventListener('mousemove', function (e) {
+      const rect = canvas.getBoundingClientRect();
+      const canvasX = e.clientX - rect.left;
+      const canvasY = e.clientY - rect.top;
+
+      const xMin = parseFloat(document.getElementById('xMin').value);
+      const xMax = parseFloat(document.getElementById('xMax').value);
+      const yMin = parseFloat(document.getElementById('yMin').value);
+      const yMax = parseFloat(document.getElementById('yMax').value);
+
+      const x = xMin + (canvasX / canvas.width) * (xMax - xMin);
+      const expr = document.getElementById('funcInput').value;
+      const y = parseExpression(expr, x);
+
+      document.getElementById('traceX').textContent = x.toFixed(4);
+      document.getElementById('traceY').textContent = y.toFixed(4);
+
+      // Analiza
+      let analysis = '';
+      if (Math.abs(y) < 0.01) analysis += '✓ Ničla (y ≈ 0)<br>';
+      if (y > 0) analysis += '+ Pozitivna vrednost<br>';
+      if (y < 0) analysis += '− Negativna vrednost<br>';
+      document.getElementById('traceAnalysis').innerHTML = analysis || 'Točka na grafu';
+    });
+
+    // ROOT - Iskanje ničel
+    function findRoots() {
+      const expr = document.getElementById('funcInput').value;
+      const xMin = parseFloat(document.getElementById('xMin').value);
+      const xMax = parseFloat(document.getElementById('xMax').value);
+      const roots = [];
+
+      for (let x = xMin; x < xMax; x += 0.1) {
+        const y1 = parseExpression(expr, x);
+        const y2 = parseExpression(expr, x + 0.1);
+        if (!isNaN(y1) && !isNaN(y2) && y1 * y2 < 0) {
+          roots.push((x + x + 0.1) / 2);
+        }
+      }
+
+      if (roots.length > 0) {
+        let html = '<div class="success"><strong>✓ Ničle najdene:</strong><br>';
+        roots.forEach(r => {
+          html += `x = ${r.toFixed(4)}<br>`;
+        });
+        html += '</div>';
+        document.getElementById('results').innerHTML = html;
+      } else {
+        document.getElementById('results').innerHTML = '<div class="warning"><strong>⚠ Ni ničel</strong> v izbranemu intervalu</div>';
+      }
+    }
+
+    // EXTREM - Iskanje ekstremov
+    function findExtrema() {
+      const expr = document.getElementById('funcInput').value;
+      const xMin = parseFloat(document.getElementById('xMin').value);
+      const xMax = parseFloat(document.getElementById('xMax').value);
+      const extrema = [];
+
+      for (let x = xMin + 0.5; x < xMax - 0.5; x += 0.2) {
+        const y0 = parseExpression(expr, x - 0.1);
+        const y1 = parseExpression(expr, x);
+        const y2 = parseExpression(expr, x + 0.1);
+
+        if (!isNaN(y0) && !isNaN(y1) && !isNaN(y2)) {
+          if ((y1 > y0 && y1 > y2) || (y1 < y0 && y1 < y2)) {
+            extrema.push({ x: x.toFixed(4), y: y1.toFixed(4), type: y1 > y0 && y1 > y2 ? 'MAX' : 'MIN' });
+          }
+        }
+      }
+
+      if (extrema.length > 0) {
+        let html = '<div class="success"><strong>✓ Ekstremi najdeni:</strong><br>';
+        extrema.forEach(e => {
+          html += `${e.type}: x=${e.x}, y=${e.y}<br>`;
+        });
+        html += '</div>';
+        document.getElementById('results').innerHTML = html;
+      } else {
+        document.getElementById('results').innerHTML = '<div class="warning"><strong>⚠ Ni lokalnih ekstremov</strong></div>';
+      }
+    }
+
+    // Primeri
+    function loadExample(func) {
+      document.getElementById('funcInput').value = func;
+      drawGraph();
+    }
+
+    function resetView() {
+      document.getElementById('funcInput').value = 'x^2-4';
+      document.getElementById('xMin').value = '-10';
+      document.getElementById('xMax').value = '10';
+      document.getElementById('yMin').value = '-15';
+      document.getElementById('yMax').value = '15';
+      document.getElementById('results').innerHTML = '';
+      drawGraph();
+    }
+
+    //初始化
+    drawGraph();
+  </script>
+</body>
+</html>
